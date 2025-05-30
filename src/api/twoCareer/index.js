@@ -23,11 +23,3 @@ function addTwoCareer(params) {
     params: params
   })
 }
-
-  function addRole(params) {
-	return request({
-	  url: 'wdcswy/role/save',
-	  method: 'get',
-	  params: params
-	})
-}

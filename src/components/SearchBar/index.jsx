@@ -2,7 +2,7 @@ import React, { createElement, useId, useState } from 'react'
 import { Card, Form, Button, Input, Space, Select, Row, Col, DatePicker } from 'antd'
 import { PlusCircleOutlined } from '@ant-design/icons'
 
-const SearchBar = ({ name, formItemList, getSearchParams }) => {
+const SearchBar = ({ formItemList, getSearchParams }) => {
   // form 表单实例
   const [searchForm] = Form.useForm()
   const [advancedSearch, setAdvancedSearch] = useState(false)
@@ -19,11 +19,11 @@ const SearchBar = ({ name, formItemList, getSearchParams }) => {
     select: ({ type, selectvalues = [], callback = () => {}, ...restProps }) =>
       createElement(
         Select,
-        { onChange: (v) => callback(v), ...restProps },
+        { onChange: (v) => callback(v), allowClear: true, ...restProps },
         selectvalues.map((v) => createElement(Select.Option, { key: v.value, value: v.value }, v.label))
       ),
-    input: ({ type, ...restProps }) => <Input {...restProps} />,
-    datePicker: ({ type, ...restProps }) => <DatePicker format="YYYY-MM-DD" {...restProps} />
+    input: ({ type, ...restProps }) => <Input allowClear {...restProps} />,
+    datePicker: ({ type, ...restProps }) => <DatePicker allowClear format="YYYY-MM-DD" {...restProps} />
   }
   return (
     <Card>

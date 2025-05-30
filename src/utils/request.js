@@ -5,7 +5,7 @@ import axios from 'axios'
  // const proBaseUrl = 'http://xxxxx.com/'
  
  // process.env返回的是一个包含用户的环境信息,它可以去区分是开发环境还是生产环境
-const BASE_URL = process.env.NODE_ENV === 'production' ? '' : '/api' //请求接口url 如果不配置 则默认访问链接地址
+const BASE_URL = '/api' //请求接口url 如果不配置 则默认访问链接地址
 const TIMEOUT = 20000 // 接口超时时间
 
 var request = axios.create({

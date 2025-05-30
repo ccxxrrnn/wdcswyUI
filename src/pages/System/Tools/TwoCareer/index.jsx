@@ -139,7 +139,7 @@ const TwoCareer = () => {
       <CustomModal title="角色" ref={userModalRef}>
         <RoleEditForm
           toggleModalStatus={toggleModalStatus}
-          editType='read'
+          editType='edit'
           roleId={roleId}
         />
       </CustomModal>

@@ -59,6 +59,13 @@ const Role = () => {
   ]
 
   /** 搜索栏参数 */
+  const cityOptions = [
+    { label: '金融中心', value: '金融中心' },
+    { label: '战斗中心', value: '战斗中心' },
+    { label: '休闲中心', value: '休闲中心' },
+    { label: '未来中心', value: '未来中心' }
+  ]
+
   const formItemList = [
     { formItemProps: { name: 'roleName', label: '角色名' }, valueCompProps: {} },
     {
@@ -71,7 +78,13 @@ const Role = () => {
           (option.children || '').toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
     },
-    { formItemProps: { name: 'city', label: '城市' }, valueCompProps: {} }
+    {
+      formItemProps: { name: 'city', label: '城市' },
+      valueCompProps: {
+        type: 'select',
+        selectvalues: cityOptions
+      }
+    }
   ]
 
   /** 表格参数 */
