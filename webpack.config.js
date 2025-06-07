@@ -57,4 +57,5 @@ module.exports = {
       '@': path.resolve(__dirname, 'src')
     }
   },
+  devtool: false, // 关闭 source map
 };
