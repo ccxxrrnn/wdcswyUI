@@ -26,7 +26,6 @@ export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleM
         message.success('修改信息成功')
       }
       onCancel()
-      onRefreshTable?.({})
     } catch (e) {
       message.error('操作失败')
     }
@@ -91,8 +90,8 @@ export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleM
             (option?.children ?? '').toLowerCase().indexOf(input.toLowerCase()) >= 0
           }
         >
-          {allCareerArr.map(item => (
-            <Option key={item.value} value={item.value}>
+          {allCareerArr.map((item, idx) => (
+            <Option key={item.value ?? idx} value={item.value}>
               {item.label}
             </Option>
           ))}
