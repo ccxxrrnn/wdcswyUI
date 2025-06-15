@@ -44,6 +44,14 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /\.js$/,
+        enforce: 'pre',
+        use: ['source-map-loader'],
+        exclude: [
+          /node_modules\/@antv\/util/
+        ]
+      }
     ],
   },
   plugins: [
@@ -57,5 +65,10 @@ module.exports = {
       '@': path.resolve(__dirname, 'src')
     }
   },
-  devtool: false, // 关闭 source map
+  devtool: false,
+  ignoreWarnings: [
+    (warning) =>
+      warning.message &&
+      warning.message.includes('@antv/util')
+  ]
 };

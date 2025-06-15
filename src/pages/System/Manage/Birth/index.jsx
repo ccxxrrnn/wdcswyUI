@@ -8,7 +8,7 @@ const Career = () => {
   // 生育职业字典
   const [careerList, setCareerList] = useState([])
   useEffect(() => {
-    careerApi.manage.query().then(res => {
+    careerApi.show.query().then(res => {
       setCareerList(res.data?.data || [])
     })
   }, [])

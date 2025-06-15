@@ -16,7 +16,6 @@ const System = () => {
         const { data: { data } } = await systemApi.data.query()
         setSystemData(data)
         setCards(data?.cards || [])
-        console.log('systemData', data)
       }
       fetchData()
     } else {

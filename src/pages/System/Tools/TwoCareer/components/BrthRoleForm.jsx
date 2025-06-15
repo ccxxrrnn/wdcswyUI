@@ -8,8 +8,6 @@ export default function BrthRoleForm({ data, birthToggleModalStatus }) {
   const [form] = Form.useForm()
   const [submitCount, setSubmitCount] = useState(0)
 
-  console.log('data', data)
-
   const CareerArr = [
     { value: data.birthCareerId, label: data.birthCareerName },
     { value: data.birthAId, label: data.birthACareerName },

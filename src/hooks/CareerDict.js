@@ -6,7 +6,7 @@ const CareerDict = () => {
 
   useEffect(() => {
 	  const fetchAllRole = async () => {
-	  	const {data : {data}} = await careerApi.manage.query()
+	  	const {data : {data}} = await careerApi.show.query()
 	  	const filterArr = data.map((item) => ({ value: item.careerId, label: item.careerName }))
 	  	setAllCareerArr(filterArr)
 	  }

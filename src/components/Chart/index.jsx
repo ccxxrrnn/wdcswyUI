@@ -15,9 +15,6 @@ const Chart = ({ data }) => {
       return result;
     })(data);
 
-    console.log('pieData', pieData);
-    console.log('data', data);
-
     const pie = new Pie('container1', {
       data: pieData,
       colorField: 'type',

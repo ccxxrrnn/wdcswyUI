@@ -1,24 +1,71 @@
-import React, { useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { Layout, Menu, theme, Breadcrumb } from 'antd'
 import { useNavigate, Link, useLocation, Outlet } from 'react-router-dom'
-import { getBreadcrumbNameMap, getTreeMenu } from '@/utils/common'
-import constantRoutes from '@/router'
+import menuApi from '@/api/menu'
 import logo from '../asset/images/logo.jpg'
 import './Layout.scss'
+import * as Icons from '@ant-design/icons'
 
 const { Header, Content, Footer, Sider } = Layout
+
+function sortMenu(items) {
+  return [...items].sort((a, b) => (a.menuOrder ?? 0) - (b.menuOrder ?? 0))
+}
+
+function renderMenu(items) {
+  if (!Array.isArray(items)) return []
+  return sortMenu(items)
+    .filter(item => String(item.menuHidden) === '0')
+    .map(item => {
+      const IconComp = Icons[item.menuIcon] || null
+      if (item.children && item.children.length) {
+        return {
+          key: item.menuRoute,
+          icon: IconComp ? <IconComp /> : null,
+          label: item.menuName,
+          children: renderMenu(item.children)
+        }
+      }
+      return {
+        key: item.menuRoute,
+        icon: IconComp ? <IconComp /> : null,
+        label: item.menuName
+      }
+    })
+}
+
+// 递归生成 { 路径: 中文名 } 映射
+function getBreadcrumbMapFromMenu(menuList, map = {}) {
+  menuList.forEach(item => {
+    if (item.menuRoute && item.menuName) {
+      map[item.menuRoute] = item.menuName
+    }
+    if (item.children && item.children.length) {
+      getBreadcrumbMapFromMenu(item.children, map)
+    }
+  })
+  return map
+}
 
 const LayoutApp = () => {
   const { pathname } = useLocation()
   const pathSnippets = pathname.split('/').filter(Boolean)
   const [collapsed, setCollapsed] = useState(false)
   const [subMenuKeys, setSubMenuKeys] = useState(pathSnippets.slice(0, -1).map(item => '/' + item))
+  const [menuData, setMenuData] = useState([])
+  const [breadcrumbMap, setBreadcrumbMap] = useState({})
   const navigate = useNavigate()
-  const menuItems = useMemo(() => getTreeMenu(constantRoutes), [])
-  const breadcrumbNameMap = useMemo(() => getBreadcrumbNameMap(constantRoutes), [])
+  const menuItems = useMemo(() => renderMenu(menuData), [menuData])
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken()
+
+  useEffect(() => {
+    menuApi.data.query().then(res => {
+      setMenuData(res.data.data)
+      setBreadcrumbMap(getBreadcrumbMapFromMenu(res.data.data))
+    })
+  }, [])
 
   // 菜单点击
   const handleMenuClick = (e) => {
@@ -31,22 +78,20 @@ const LayoutApp = () => {
   }
 
   // 面包屑数据
-  const breadcrumbItems = useMemo(() =>
-    pathSnippets.map((_, index) => {
+  const breadcrumbItems = useMemo(() => {
+    const items = [
+      { key: '/', title: <Link to="/">首页</Link> }
+    ]
+    pathSnippets.forEach((_, index) => {
       const url = `/${pathSnippets.slice(0, index + 1).join('/')}`
-      return {
+      items.push({
         key: url,
-        title: breadcrumbNameMap[url],
-        path: url
-      }
-    }), [pathSnippets, breadcrumbNameMap]
-  )
+        title: breadcrumbMap[url] || url
+      })
+    })
+    return items
+  }, [pathSnippets, breadcrumbMap])
 
-  // 面包屑渲染
-  const itemRender = (route, params, routes) =>
-    routes.indexOf(route) === routes.length - 1
-      ? <span>{route.title}</span>
-      : <Link to={route.path}>{route.title}</Link>
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -73,7 +118,6 @@ const LayoutApp = () => {
           <div className="header-breadcrumb">
             <Breadcrumb
               items={breadcrumbItems}
-              itemRender={itemRender}
               style={{ margin: '16px 0' }}
             />
           </div>

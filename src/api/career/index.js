@@ -2,9 +2,13 @@
 import request from '@/utils/request'
 
 const apiMap = {
-  manage: {
+  show: {
     queryPage: listCareersPage,
-	query: listCareers
+	  query: listCareers
+  },
+  store: {
+    query: listCareerStore,
+    add: addCareerStore
   }
 }
 export default apiMap
@@ -22,5 +26,18 @@ function listCareers(params) {
     url: 'wdcswy/career/query',
     method: 'get',
     params: params
+  })
+}
+function listCareerStore() {
+  return request({
+    url: '/wdcswy/careerStore/list',
+    method: 'get'
+  })
+}
+function addCareerStore(params) {
+  return request({
+    url: '/wdcswy/careerStore/save',
+    method: 'get',
+	  params: params
   })
 }

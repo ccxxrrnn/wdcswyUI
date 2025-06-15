@@ -36,7 +36,7 @@ export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleM
     async function fetchData() {
       try {
         // 获取职业列表
-        const { data: { data: careerData } } = await careerApi.manage.query()
+        const { data: { data: careerData } } = await careerApi.show.query()
         const arr = careerData.map(item => ({
           value: String(item.careerId),
           label: item.careerName

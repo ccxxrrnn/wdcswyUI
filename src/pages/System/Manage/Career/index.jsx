@@ -32,7 +32,7 @@ const Career = () => {
       columns={columns}
       rowKey="careerId"
       bordered
-      fetchMethod={careerApi.manage.queryPage}
+      fetchMethod={careerApi.show.queryPage}
       requestParam={requestParam}
       onParamChange={onParamChange}
     />
