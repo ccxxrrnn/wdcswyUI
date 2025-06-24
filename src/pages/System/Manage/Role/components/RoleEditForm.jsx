@@ -1,13 +1,22 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { Form, Input, Button, message, Select, Radio } from 'antd'
-import roleApi from '@/api/role'
-import careerApi from '@/api/career'
+import manageApi from '@/api/manage'
+import knowledgeApi from '@/api/knowledge'
 
 const { Option } = Select
 
-export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleModalStatus }) {
+const CITY_OPTIONS = [
+  '金融中心',
+  '战斗中心',
+  '休闲中心',
+  '未来中心',
+  '斯巴达城'
+]
+
+export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleModalStatus, data }) {
   const [form] = Form.useForm()
   const [allCareerArr, setAllCareerArr] = useState([])
+  const [careerLoaded, setCareerLoaded] = useState(false)
 
   const isDisabled = editType === 'read'
 
@@ -15,55 +24,98 @@ export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleM
     toggleModalStatus(false)
   }, [toggleModalStatus])
 
-  const onFinish = async (value) => {
+  const onFinish = useCallback(async (value) => {
     try {
       if (editType === 'add') {
-        await roleApi.manage.add(value)
+        await manageApi.role.add(value)
         message.success('添加用户成功')
         form.resetFields()
       } else if (editType === 'edit') {
-        await roleApi.manage.update({ roleId, ...value })
+        await manageApi.role.update({ roleId, ...value })
         message.success('修改信息成功')
       }
       onCancel()
     } catch (e) {
       message.error('操作失败')
     }
-  }
+  }, [editType, roleId, onCancel, form])
 
-  // 获取职业数据和当前角色数据
+  // 提取表单赋值逻辑
+  const setFormFields = useCallback((fields) => {
+    form.setFieldsValue({
+      roleName: fields.roleName,
+      sex: fields.sex,
+      careerId: fields.careerId,
+      city: fields.city,
+      isTwo: fields.isTwo,
+      isBrith: fields.isBrith,
+      star: fields.star
+    })
+  }, [form])
+
+  // 加载职业列表
   useEffect(() => {
-    async function fetchData() {
+    async function fetchCareer() {
       try {
-        // 获取职业列表
-        const { data: { data: careerData } } = await careerApi.show.query()
-        const arr = careerData.map(item => ({
+        const { data: { data} } = await knowledgeApi.career.query()
+        const arr = data.map(item => ({
           value: String(item.careerId),
           label: item.careerName
         }))
         setAllCareerArr(arr)
-
-        // 获取当前角色数据（编辑/只读时）
-        if ((editType === 'edit' || editType === 'read') && roleId) {
-          const { data: { data: roleData } } = await roleApi.manage.queryById(roleId)
-          form.setFieldsValue({
-            ...roleData,
-            sex: String(roleData.sex),
-            isTwo: roleData.isTwo === 'true' ? '1' : '0',
-            isBrith: roleData.isBrith === 'true' ? '1' : '0',
-            careerId: String(roleData.careerId),
-            star: String(roleData.star)
-          })
-        } else {
-          form.resetFields()
-        }
       } catch (e) {
         setAllCareerArr([])
+      } finally {
+        setCareerLoaded(true)
       }
     }
-    fetchData()
-    // eslint-disable-next-line
-  }, [editType, roleId, form])
+    fetchCareer()
+  }, [])
+
+  // 加载表单数据
+  useEffect(() => {
+    if (!careerLoaded) return
+    if ((editType === 'edit' || editType === 'read') && roleId) {
+      manageApi.role.queryById(roleId).then(res => {
+        const roleData = res.data.data
+        setFormFields({
+          roleName: roleData.roleName,
+          sex: String(roleData.sex),
+          careerId: roleData.careerId != null ? String(roleData.careerId) : undefined,
+          city: roleData.city || undefined,
+          isTwo: roleData.isTwo === 'true' ? '1' : '0',
+          isBrith: roleData.isBrith === 'true' ? '1' : '0',
+          star: String(roleData.star)
+        })
+      }).catch(() => {
+        form.resetFields()
+      })
+    } else if (data) {
+      if (data.roleType === 'A') {
+        setFormFields({
+          roleName: data.birthARoleName,
+          sex: '0',
+          careerId: data.birthCareerAId != null ? String(data.birthCareerAId) : undefined,
+          city: undefined,
+          isTwo: '0',
+          isBrith: '0',
+          star: data.birthAStar
+        })
+      } else if (data.roleType === 'B') {
+        setFormFields({
+          roleName: data.birthBRoleName,
+          sex: '1',
+          careerId: data.birthCareerBId != null ? String(data.birthCareerBId) : undefined,
+          city: undefined,
+          isTwo: '0',
+          isBrith: '0',
+          star: data.birthBStar
+        })
+      }
+    } else {
+      form.resetFields()
+    }
+  }, [editType, roleId, form, data, careerLoaded, setFormFields])
 
   return (
     <Form
@@ -86,6 +138,7 @@ export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleM
         <Select
           placeholder="请选择你的职业"
           showSearch
+          allowClear
           filterOption={(input, option) =>
             (option?.children ?? '').toLowerCase().indexOf(input.toLowerCase()) >= 0
           }
@@ -98,11 +151,10 @@ export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleM
         </Select>
       </Form.Item>
       <Form.Item name="city" label="城市" hasFeedback rules={[{ required: true, message: '请选择一个城市!' }]}>
-        <Select placeholder="请选择一个城市">
-          <Option value="金融中心">金融中心</Option>
-          <Option value="战斗中心">战斗中心</Option>
-          <Option value="休闲中心">休闲中心</Option>
-          <Option value="未来中心">未来中心</Option>
+        <Select placeholder="请选择一个城市" allowClear>
+          {CITY_OPTIONS.map(city => (
+            <Option key={city} value={city}>{city}</Option>
+          ))}
         </Select>
       </Form.Item>
       <Form.Item name="isTwo" label="二代" rules={[{ required: true, message: '必填' }]}>

@@ -1,18 +1,18 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import { Space, Divider, Button } from 'antd' // Card 已移除
-import twoCareerApi from '@/api/twoCareer'
+import toolsApi from '@/api/tools'
 import RoleEditForm from '@/pages/System/Manage/Role/components/RoleEditForm'
 import CustomModal from '@/components/CustomModal'
 import CustomTable from '@/components/CustomTable'
 import BirthRoleForm from './components/BrthRoleForm'
 import SearchBar from '@/components/SearchBar'
-import careerApi from '@/api/career'
+import knowledgeApi from '@/api/knowledge'
 
 const TwoCareer = () => {
   // 生育职业字典
   const [careerList, setCareerList] = useState([])
   useEffect(() => {
-    careerApi.show.query().then(res => {
+    knowledgeApi.career.query().then(res => {
       setCareerList(res.data?.data || [])
     })
   }, [])
@@ -59,6 +59,7 @@ const TwoCareer = () => {
   // 弹窗、表单等逻辑
   const [roleId, setRoleId] = useState()
   const [data, setData] = useState()
+  const [currentRecord, setCurrentRecord] = useState()
   const userModalRef = useRef()
   const birthModalRef = useRef()
   const toggleModalStatus = useCallback((status) => {
@@ -72,43 +73,45 @@ const TwoCareer = () => {
     birthToggleModalStatus(true)
   }, [birthToggleModalStatus])
 
+  // 角色列生成函数
+  const createRoleColumn = useCallback((title, dataIndex, idKey, starKey, roleType) => ({
+    title,
+    dataIndex,
+    key: dataIndex,
+    render: (text, record) => {
+      const id = record[idKey];
+      const star = record[starKey];
+      const isEmpty = id === 0 || id === '' || id === null || id === undefined || id === '0';
+      const displayText = star ? `${text}（${star}）` : text;
+      return (
+        <button
+          type="button"
+          style={{
+            border: 'none',
+            background: 'none',
+            color: isEmpty ? '#ff4d4f' : '#1890ff',
+            fontWeight: isEmpty ? 'bold' : 'normal',
+            cursor: 'pointer',
+            padding: 0
+          }}
+          onClick={() => {
+            setRoleId(id)
+            setCurrentRecord({ ...record, roleType })
+            toggleModalStatus(true)
+          }}
+        >
+          {displayText}
+          {isEmpty && ' (未设置)'}
+        </button>
+      );
+    }
+  }), [toggleModalStatus])
+
   const columns = useMemo(() => [
-    { title: '父亲职业', dataIndex: 'birthACareerName', key: 'birthACareerName' },
-    {
-      title: '父亲角色',
-      dataIndex: 'birthARoleName',
-      key: 'birthARoleName',
-      render: (text, record) => (
-        <button
-          type="button"
-          style={{ border: 'none', background: 'none', color: '#1890ff', cursor: 'pointer', padding: 0 }}
-          onClick={() => {
-            setRoleId(record.birthAId)
-            toggleModalStatus(true)
-          }}
-        >
-          {text}
-        </button>
-      ),
-    },
-    { title: '母亲职业', dataIndex: 'birthBCareerName', key: 'birthBCareerName' },
-    {
-      title: '母亲角色',
-      dataIndex: 'birthBRoleName',
-      key: 'birthBRoleName',
-      render: (text, record) => (
-        <button
-          type="button"
-          style={{ border: 'none', background: 'none', color: '#1890ff', cursor: 'pointer', padding: 0 }}
-          onClick={() => {
-            setRoleId(record.birthBId)
-            toggleModalStatus(true)
-          }}
-        >
-          {text}
-        </button>
-      ),
-    },
+    { title: '职业A', dataIndex: 'birthACareerName', key: 'birthACareerName' },
+    createRoleColumn('角色A', 'birthARoleName', 'birthAId', 'birthAStar', 'A'),
+    { title: '职业B', dataIndex: 'birthBCareerName', key: 'birthBCareerName' },
+    createRoleColumn('角色B', 'birthBRoleName', 'birthBId', 'birthBStar', 'B'),
     { title: '生育职业', dataIndex: 'birthCareerName', key: 'birthCareerName' },
     {
       title: 'Action',
@@ -119,7 +122,34 @@ const TwoCareer = () => {
         </Space>
       ),
     },
-  ], [addRow, toggleModalStatus])
+  ], [addRow, createRoleColumn])
+
+  // 弹窗配置数组
+  const modals = [
+    {
+      title: '角色',
+      ref: userModalRef,
+      content: (
+        <RoleEditForm
+          toggleModalStatus={toggleModalStatus}
+          editType='edit'
+          roleId={roleId}
+          data={currentRecord}
+        />
+      )
+    },
+    {
+      title: '生育',
+      ref: birthModalRef,
+      content: (
+        <BirthRoleForm
+          data={data}
+          birthToggleModalStatus={birthToggleModalStatus}
+          careerList={careerList}
+        />
+      )
+    }
+  ]
 
   return (
     <>
@@ -132,23 +162,15 @@ const TwoCareer = () => {
         columns={columns}
         rowKey="roleId"
         bordered
-        fetchMethod={twoCareerApi.manage.query}
+        fetchMethod={toolsApi.twoBirth.query}
         requestParam={requestParam}
         onParamChange={onParamChange}
       />
-      <CustomModal title="角色" ref={userModalRef}>
-        <RoleEditForm
-          toggleModalStatus={toggleModalStatus}
-          editType='edit'
-          roleId={roleId}
-        />
-      </CustomModal>
-      <CustomModal title="生育" ref={birthModalRef}>
-        <BirthRoleForm
-          data={data}
-          birthToggleModalStatus={birthToggleModalStatus}
-        />
-      </CustomModal>
+      {modals.map(({ title, ref, content }) => (
+        <CustomModal title={title} ref={ref} key={title}>
+          {content}
+        </CustomModal>
+      ))}
     </>
   )
 }

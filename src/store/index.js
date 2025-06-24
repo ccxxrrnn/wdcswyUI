@@ -4,9 +4,7 @@ import permissionSlice from '@/store/reducers/permissionSlice.js'
 // 创建store对象
 const store = configureStore({
   reducer: {
-    // user: userSlice.reducer,
-    permission: permissionSlice.reducer,
-    // tabs: tabSlice.reducer
+    permission: permissionSlice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build: . 
+    container_name: wdcswy-ui
+    image: wdcswy-ui  
+    ports:
+      - "80:80"  
+    volumes:
+      - ./dist:/usr/share/nginx/html

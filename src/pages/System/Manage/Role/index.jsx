@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { Space, Button, Popconfirm, Card, message } from 'antd'
-import roleApi from '@/api/role'
+import manageApi from '@/api/manage'
 import CustomTable from '@/components/CustomTable'
 import RoleEditForm from './components/RoleEditForm'
 import CustomModal from '@/components/CustomModal'
@@ -131,7 +131,7 @@ const Role = () => {
   // 删除
   const deleteRow = async (roleIds) => {
     try {
-      await roleApi.manage.del(roleIds)
+      await manageApi.role.del(roleIds)
       message.success('删除成功')
       setSelectedRowKeys([])
       // 触发表格刷新
@@ -162,7 +162,7 @@ const Role = () => {
         columns={columns}
         rowKey="roleId"
         bordered
-        fetchMethod={roleApi.manage.query}
+        fetchMethod={manageApi.role.query}
         requestParam={requestParam}
         onParamChange={onParamChange}
       />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card, List, InputNumber, Button, message } from 'antd'
 import { EditOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
-import careerApi from '@/api/career'
+import manageApi from '@/api/manage'
 
 const levelOrder = ['S', 'A', 'B', 'C', 'D']
 const cardColors = {
@@ -28,7 +28,7 @@ export default function SummonableRolesByLevel() {
   // 获取数据
   useEffect(() => {
     setLoading(true)
-    careerApi.store.query().then(res => {
+    manageApi.career.store.query().then(res => {
       setData(res.data.data)
       setLoading(false)
     })
@@ -62,7 +62,7 @@ export default function SummonableRolesByLevel() {
         starStr: level,
         number: editValue
       }
-      await careerApi.store.add(payload)
+      await manageApi.career.store.add(payload)
       message.success('保存成功')
       // 前端本地同步更新
       setData(prev => ({

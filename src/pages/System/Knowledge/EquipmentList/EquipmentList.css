@@ -1,0 +1,156 @@
+/* EquipmentList.css */
+.attribute-row {
+  margin-bottom: 16px;
+}
+.attribute-label {
+  font-weight: bold;
+  color: #333;
+  margin-right: 16px;
+  min-width: 60px;
+}
+.attribute-content {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.attribute-content > div {
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+
+.equipment-card {
+  width: 100%;
+  text-align: center;
+}
+
+.equipment-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.equipment-name {
+  margin-top: 8px;
+  font-weight: bold;
+}
+
+
+.attribute-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.attribute-content {
+  display: flex;
+  align-items: center;
+}
+
+/* 强制设置装备列表容器高度并移除可能的干扰样式 */
+.equipment-spin-container {
+  margin-top: 16px;
+  min-height: 200px !important; /* 使用 !important 确保覆盖 Ant Design 默认样式 */
+  height: auto !important;
+}
+
+/* 添加响应式布局支持 */
+@media (max-width: 768px) {
+  .equipment-row {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto !important;
+  }
+
+  .ant-col-8,
+  .ant-col-16 {
+    width: 100%;
+    max-width: 100%;
+  }
+
+
+  .equipment-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+  }
+
+  .equipment-image {
+    width: 60px;
+  }
+
+  .attribute-card {
+    margin-top: 12px;
+  }
+}
+
+/* 调整属性行的样式 */
+.attribute-items-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.attribute-label {
+  font-weight: 500;
+  margin-right: 16px;
+  min-width: 60px;
+  display: block;
+}
+
+.attribute-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  margin-right: 16px;
+}
+
+.quality-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.quality-title {
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+.quality-value {
+  color: #595959;
+}
+
+/* 最大化展示装备图片，保持宽高比 */
+.equipment-image-max {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.attribute-card .ant-descriptions-item-label {
+  font-size: 15px !important;
+  font-weight: normal !important;
+  width: 80px !important;
+}
+
+.attribute-card .ant-descriptions-item-content {
+  font-size: 15px !important;
+}
+
+.ant-descriptions-small .ant-descriptions-item-label {
+  font-size: 15px !important;
+  font-weight: normal !important;
+  width: 100px !important;
+}
+
+.ant-descriptions-small .ant-descriptions-item-content {
+  font-size: 15px !important;
+  width: 100px !important;
+}
+  .ant-card .ant-card-body {
+  padding: 0 !important;
+}

@@ -1,14 +1,13 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import CustomTable from '@/components/CustomTable'
-import birthApi from '@/api/birth'
-import careerApi from '@/api/career'
+import knowledgeApi from '@/api/knowledge'
 import SearchBar from '@/components/SearchBar'
 
 const Career = () => {
   // 生育职业字典
   const [careerList, setCareerList] = useState([])
   useEffect(() => {
-    careerApi.show.query().then(res => {
+    knowledgeApi.career.query().then(res => {
       setCareerList(res.data?.data || [])
     })
   }, [])
@@ -63,7 +62,7 @@ const Career = () => {
         columns={columns}
         rowKey="birthId"
         bordered
-        fetchMethod={birthApi.manage.queryPage}
+        fetchMethod={knowledgeApi.birth.queryPage}
         requestParam={requestParam}
         onParamChange={onParamChange}
       />

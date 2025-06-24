@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { Layout, Menu, theme, Breadcrumb } from 'antd'
 import { useNavigate, Link, useLocation, Outlet } from 'react-router-dom'
 import menuApi from '@/api/menu'
-import logo from '../asset/images/logo.jpg'
+import logo from '../assets/images/logo.jpg'
 import './Layout.scss'
 import * as Icons from '@ant-design/icons'
 

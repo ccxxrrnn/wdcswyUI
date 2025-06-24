@@ -1,18 +1,12 @@
 import { useCallback, useState } from 'react'
 import { Form, Input, Button, message, Select, Radio } from 'antd'
-import twoCareerApi from '@/api/twoCareer'
+import toolsApi from '@/api/tools'
 
 const { Option } = Select
 
-export default function BrthRoleForm({ data, birthToggleModalStatus }) {
+export default function BrthRoleForm({ data, birthToggleModalStatus, careerList = [] }) {
   const [form] = Form.useForm()
   const [submitCount, setSubmitCount] = useState(0)
-
-  const CareerArr = [
-    { value: data.birthCareerId, label: data.birthCareerName },
-    { value: data.birthAId, label: data.birthACareerName },
-    { value: data.birthBId, label: data.birthBCareerName }
-  ]
 
   const onCancel = useCallback(() => {
     birthToggleModalStatus(false)
@@ -20,7 +14,7 @@ export default function BrthRoleForm({ data, birthToggleModalStatus }) {
 
   const onFinish = async (value) => {
     if (submitCount >= 2) {
-       onCancel()
+      onCancel()
       message.warning('已达到提交上限，无法再次提交')
       return
     }
@@ -33,7 +27,7 @@ export default function BrthRoleForm({ data, birthToggleModalStatus }) {
         isTwo: '1',
         isBrith: '1'
       }
-      await twoCareerApi.manage.add(value)
+      await toolsApi.twoBirth.add(value)
       message.success('添加生育成功')
       form.resetFields()
       setSubmitCount(count => count + 1)
@@ -41,6 +35,16 @@ export default function BrthRoleForm({ data, birthToggleModalStatus }) {
       message.error('操作失败')
     }
   }
+
+  // 抽象城市和星级选项
+  const cityOptions = ['金融中心', '战斗中心', '休闲中心', '未来中心']
+  const starOptions = [
+    { value: '5', label: 'S' },
+    { value: '4', label: 'A' },
+    { value: '3', label: 'B' },
+    { value: '2', label: 'C' },
+    { value: '1', label: 'D' },
+  ]
 
   return (
     <Form
@@ -62,7 +66,7 @@ export default function BrthRoleForm({ data, birthToggleModalStatus }) {
         name="careerId"
         label="职业"
         hasFeedback
-        initialValue={CareerArr[0]?.value}
+        initialValue={data.birthCareerId}
         rules={[{ required: true, message: '请选择你的职业!' }]}
       >
         <Select
@@ -72,28 +76,21 @@ export default function BrthRoleForm({ data, birthToggleModalStatus }) {
             (option?.children ?? '').toLowerCase().indexOf(input.toLowerCase()) >= 0
           }
         >
-          {CareerArr.map((item, idx) => (
-            <Option key={item.value ?? idx} value={item.value}>
-              {item.label}
+          {careerList.map((item) => (
+            <Option key={item.careerId} value={item.careerId}>
+              {item.careerName}
             </Option>
           ))}
         </Select>
       </Form.Item>
       <Form.Item name="city" label="城市" hasFeedback rules={[{ required: true, message: '请选择一个城市!' }]}>
         <Select placeholder="请选择一个城市">
-          <Option value="金融中心">金融中心</Option>
-          <Option value="战斗中心">战斗中心</Option>
-          <Option value="休闲中心">休闲中心</Option>
-          <Option value="未来中心">未来中心</Option>
+          {cityOptions.map(city => (<Option key={city} value={city}>{city}</Option>))}
         </Select>
       </Form.Item>
       <Form.Item name="star" label="星级" hasFeedback rules={[{ required: true, message: '请选择一个星级!' }]}>
         <Select placeholder="请选择一个星级">
-          <Option value="5">S</Option>
-          <Option value="4">A</Option>
-          <Option value="3">B</Option>
-          <Option value="2">C</Option>
-          <Option value="1">D</Option>
+          {starOptions.map(opt => (<Option key={opt.value} value={opt.value}>{opt.label}</Option>))}
         </Select>
       </Form.Item>
       <Form.Item wrapperCol={{ span: 16, offset: 8 }}>

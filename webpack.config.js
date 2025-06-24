@@ -57,7 +57,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({ // 自动生成index.html文件并引入打包后的JS文件
       template: './public/index.html' // 使用指定的HTML模板文件作为模板生成新的HTML文件
-    }),
+    })
   ],
   resolve: {
     extensions: ['.js', '.jsx'], // 自动解析扩展名

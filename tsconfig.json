@@ -19,14 +19,10 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-	"baseUrl": ".", // 设置根目录为相对路径的基地址
+	"baseUrl": "./",
 	"paths": {
-	  "@/*": [
-		  "src/*"
-	  ] // 将"@"设置为根目录的别名
+	  "@/*": ["./src/*"]
 	}
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }
