@@ -1,0 +1,6 @@
+projectKey=wdcswy-ui
+serverUrl=http://47.94.241.80:9000
+serverVersion=10.7.0.96327
+dashboardUrl=http://47.94.241.80:9000/dashboard?id=wdcswy-ui
+ceTaskId=0c05ae39-86ce-44f7-a8bb-6264875191c5
+ceTaskUrl=http://47.94.241.80:9000/api/ce/task?id=0c05ae39-86ce-44f7-a8bb-6264875191c5

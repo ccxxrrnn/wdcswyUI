@@ -59,18 +59,16 @@ export default function SummonableRolesByLevel() {
       const payload = {
         id: old.id,
         careerId: old.careerId,
-        starStr: level,
+        star: level,
         number: editValue
       }
       await manageApi.career.store.add(payload)
       message.success('保存成功')
+
+     const response = await manageApi.career.store.query(); // 假设 list() 接口用于获取当前 Store 数据
+
       // 前端本地同步更新
-      setData(prev => ({
-        ...prev,
-        [level]: prev[level].map((item, idx) =>
-          idx === itemIndex ? { ...item, number: editValue } : item
-        )
-      }))
+      setData(response.data.data)
       setEditing({ level: null, itemIndex: null })
       setEditValue(null)
     } finally {
@@ -97,7 +95,7 @@ export default function SummonableRolesByLevel() {
             bordered
             size="small"
             style={{ flex: 1 }}
-            bodyStyle={{ padding: 8 }}
+            styles={{ body: { padding: 8 } }}
             loading={loading}
           >
             <List

@@ -38,8 +38,8 @@ module.exports = {
           {
             loader: 'file-loader',
             options: {
-              name: '[name].[hash].[ext]',
-              outputPath: 'images',
+              name: '[name].[hash:8].[ext]',
+              outputPath: 'static/media',
             },
           },
         ],

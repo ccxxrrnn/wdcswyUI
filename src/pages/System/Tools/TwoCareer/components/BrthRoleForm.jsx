@@ -1,6 +1,8 @@
-import { useCallback, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { Form, Input, Button, message, Select, Radio } from 'antd'
 import toolsApi from '@/api/tools'
+import systemApi from '@/api/system'
+
 
 const { Option } = Select
 
@@ -37,14 +39,22 @@ export default function BrthRoleForm({ data, birthToggleModalStatus, careerList 
   }
 
   // 抽象城市和星级选项
-  const cityOptions = ['金融中心', '战斗中心', '休闲中心', '未来中心']
-  const starOptions = [
-    { value: '5', label: 'S' },
-    { value: '4', label: 'A' },
-    { value: '3', label: 'B' },
-    { value: '2', label: 'C' },
-    { value: '1', label: 'D' },
-  ]
+    const [cityOptions, setCityOptions] = useState([])
+
+    useEffect(() => {
+      systemApi.constants.listByType('city').then(res => {
+        setCityOptions(res.data.data)
+      })
+    }, [])
+
+  const [starOptions, setStarOptions] = useState([])
+
+    useEffect(() => {
+      systemApi.constants.listByType('star').then(res => {
+        setStarOptions(res.data.data)
+      })
+    }, [])
+
 
   return (
     <Form
@@ -77,20 +87,20 @@ export default function BrthRoleForm({ data, birthToggleModalStatus, careerList 
           }
         >
           {careerList.map((item) => (
-            <Option key={item.careerId} value={item.careerId}>
-              {item.careerName}
+            <Option key={item.key} value={item.value}>
+              {item.value}
             </Option>
           ))}
         </Select>
       </Form.Item>
       <Form.Item name="city" label="城市" hasFeedback rules={[{ required: true, message: '请选择一个城市!' }]}>
         <Select placeholder="请选择一个城市">
-          {cityOptions.map(city => (<Option key={city} value={city}>{city}</Option>))}
+          {cityOptions.map(city => (<Option key={city.key} value={city.value}>{city.value}</Option>))}
         </Select>
       </Form.Item>
       <Form.Item name="star" label="星级" hasFeedback rules={[{ required: true, message: '请选择一个星级!' }]}>
         <Select placeholder="请选择一个星级">
-          {starOptions.map(opt => (<Option key={opt.value} value={opt.value}>{opt.label}</Option>))}
+          {starOptions.map(opt => (<Option key={opt.key} value={opt.value}>{opt.value}</Option>))}
         </Select>
       </Form.Item>
       <Form.Item wrapperCol={{ span: 16, offset: 8 }}>

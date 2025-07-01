@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Space, Button, Popconfirm, Card, message } from 'antd'
 import manageApi from '@/api/manage'
+import systemApi from '@/api/system'
 import CustomTable from '@/components/CustomTable'
 import RoleEditForm from './components/RoleEditForm'
 import CustomModal from '@/components/CustomModal'
@@ -37,34 +38,22 @@ const Role = () => {
         </button>
       ),
     },
-    {
-      title: '性别',
-      dataIndex: 'sex',
-      key: 'sex',
-      render: (sex) => (sex === 0 ? '男' : '女'),
-    },
-    {
-      title: '职业',
-      dataIndex: 'careerId',
-      key: 'careerId',
-      render: (careerId) => {
-        const statusItem = careerDicts.find((item) => String(item.value) === String(careerId))
-        return statusItem?.label || careerId || ''
-      }
-    },
+    {title: '性别',dataIndex: 'sex',key: 'sex'},
+    {title: '职业',dataIndex: 'careerName',key: 'careerName',},
     { title: '城市', dataIndex: 'city', key: 'city' },
     { title: '是否二代', dataIndex: 'isTwo', key: 'isTwo' },
     { title: '是否结婚', dataIndex: 'isBrith', key: 'isBrith' },
-    { title: '星级', dataIndex: 'starLevel', key: 'starLevel' }
+    { title: '星级', dataIndex: 'star', key: 'star' }
   ]
 
   /** 搜索栏参数 */
-  const cityOptions = [
-    { label: '金融中心', value: '金融中心' },
-    { label: '战斗中心', value: '战斗中心' },
-    { label: '休闲中心', value: '休闲中心' },
-    { label: '未来中心', value: '未来中心' }
-  ]
+  const [cityOptions, setCityOptions] = useState([])
+
+    useEffect(() => {
+      systemApi.constants.listByType('city').then(res => {
+        setCityOptions(res.data.data)
+      })
+    }, [])
 
   const formItemList = [
     { formItemProps: { name: 'roleName', label: '角色名' }, valueCompProps: {} },
@@ -82,7 +71,9 @@ const Role = () => {
       formItemProps: { name: 'city', label: '城市' },
       valueCompProps: {
         type: 'select',
-        selectvalues: cityOptions
+        selectvalues: cityOptions,
+        showSearch: true,
+        value: 'key'
       }
     }
   ]

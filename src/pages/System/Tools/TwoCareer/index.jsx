@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { Space, Divider, Button } from 'antd' // Card 已移除
 import toolsApi from '@/api/tools'
 import RoleEditForm from '@/pages/System/Manage/Role/components/RoleEditForm'
@@ -6,16 +6,11 @@ import CustomModal from '@/components/CustomModal'
 import CustomTable from '@/components/CustomTable'
 import BirthRoleForm from './components/BrthRoleForm'
 import SearchBar from '@/components/SearchBar'
-import knowledgeApi from '@/api/knowledge'
+import careerDict from '@/hooks/CareerDict'
 
 const TwoCareer = () => {
   // 生育职业字典
-  const [careerList, setCareerList] = useState([])
-  useEffect(() => {
-    knowledgeApi.career.query().then(res => {
-      setCareerList(res.data?.data || [])
-    })
-  }, [])
+  const careerDicts = careerDict()
 
   // 搜索栏表单项
   const formItemList = [
@@ -23,10 +18,7 @@ const TwoCareer = () => {
       formItemProps: { name: 'birthCareerId', label: '生育职业：' },
       valueCompProps: {
         type: 'select',
-        selectvalues: careerList.map(item => ({
-          value: item.careerId,
-          label: item.careerName
-        })),
+        selectvalues: careerDicts,
         showSearch: true,
         filterOption: (input, option) =>
           (option.children || '').toLowerCase().indexOf(input.toLowerCase()) >= 0
@@ -81,7 +73,7 @@ const TwoCareer = () => {
     render: (text, record) => {
       const id = record[idKey];
       const star = record[starKey];
-      const isEmpty = id === 0 || id === '' || id === null || id === undefined || id === '0';
+      const isEmpty = id === 0 || id === '' || id === 'null' || id === null || id === undefined || id === '0';
       const displayText = star ? `${text}（${star}）` : text;
       return (
         <button
@@ -145,7 +137,7 @@ const TwoCareer = () => {
         <BirthRoleForm
           data={data}
           birthToggleModalStatus={birthToggleModalStatus}
-          careerList={careerList}
+          careerList={data ? careerDicts.filter(item => item.value === data.birthACareerName || item.value === data.birthBCareerName || item.value === data.birthCareerName) : careerDicts}
         />
       )
     }
@@ -160,7 +152,9 @@ const TwoCareer = () => {
       <SearchBar formItemList={formItemList} getSearchParams={onParamChange} />
       <CustomTable
         columns={columns}
-        rowKey="roleId"
+        rowKey={(record) =>
+          `${record.birthACareerName}-${record.birthAId}-${record.birthBCareerName}-${record.birthBId}`
+        }
         bordered
         fetchMethod={toolsApi.twoBirth.query}
         requestParam={requestParam}

@@ -1,17 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { Form, Input, Button, message, Select, Radio } from 'antd'
 import manageApi from '@/api/manage'
+import systemApi from '@/api/system'
 import knowledgeApi from '@/api/knowledge'
 
 const { Option } = Select
-
-const CITY_OPTIONS = [
-  '金融中心',
-  '战斗中心',
-  '休闲中心',
-  '未来中心',
-  '斯巴达城'
-]
 
 export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleModalStatus, data }) {
   const [form] = Form.useForm()
@@ -52,6 +45,24 @@ export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleM
       star: fields.star
     })
   }, [form])
+
+
+    const [cityOptions, setCityOptions] = useState([])
+
+    useEffect(() => {
+      systemApi.constants.listByType('city').then(res => {
+        setCityOptions(res.data.data)
+      })
+    }, [])
+
+        const [starOptions, setStarOptions] = useState([])
+
+    useEffect(() => {
+      systemApi.constants.listByType('star').then(res => {
+        setStarOptions(res.data.data)
+      })
+    }, [])
+
 
   // 加载职业列表
   useEffect(() => {
@@ -130,8 +141,8 @@ export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleM
       </Form.Item>
       <Form.Item name="sex" label="性别" rules={[{ required: true, message: '必填' }]}>
         <Radio.Group>
-          <Radio value="0">男</Radio>
-          <Radio value="1">女</Radio>
+          <Radio value="0">女</Radio>
+          <Radio value="1">男</Radio>
         </Radio.Group>
       </Form.Item>
       <Form.Item name="careerId" label="职业" hasFeedback rules={[{ required: true, message: '请选择你的职业!' }]}>
@@ -152,8 +163,8 @@ export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleM
       </Form.Item>
       <Form.Item name="city" label="城市" hasFeedback rules={[{ required: true, message: '请选择一个城市!' }]}>
         <Select placeholder="请选择一个城市" allowClear>
-          {CITY_OPTIONS.map(city => (
-            <Option key={city} value={city}>{city}</Option>
+          {cityOptions.map(city => (
+            <Option key={city.key} value={city.value}>{city.value}</Option>
           ))}
         </Select>
       </Form.Item>
@@ -171,11 +182,9 @@ export default function RoleEditForm({ editType, roleId, onRefreshTable, toggleM
       </Form.Item>
       <Form.Item name="star" label="星级" hasFeedback rules={[{ required: true, message: '请选择一个星级!' }]}>
         <Select placeholder="请选择一个星级">
-          <Option value="5">S</Option>
-          <Option value="4">A</Option>
-          <Option value="3">B</Option>
-          <Option value="2">C</Option>
-          <Option value="1">D</Option>
+          {starOptions.map(star => (
+            <Option key={star.key} value={star.value}>{star.value}</Option>
+          ))}
         </Select>
       </Form.Item>
       {editType !== 'read' && (

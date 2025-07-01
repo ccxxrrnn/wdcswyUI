@@ -11,7 +11,6 @@ const CustomTable = ({ fetchMethod, columns, requestParam, onParamChange, ...res
 		onParamChange({ pageSize: page.pageSize, current: page.current })
 	}
 
-	// console.log('requestParam' , requestParam)
 	return (
 		<Table
 			{...resetTableProps}

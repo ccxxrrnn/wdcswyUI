@@ -15,4 +15,4 @@ const permissionSlice = createSlice({
 
 export const { setPermissionRoutes } = permissionSlice.actions
 
-export default permissionSlice
+export default permissionSlice.reducer

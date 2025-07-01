@@ -5,9 +5,6 @@ const apiMap = {
         queryPage: listCareersPage,
 	    query: listCareers
     },
-    TwoCareer:{
-        two : twoCareer
-    },
     birth:{
      queryPage: listBirthsPage
     },
@@ -33,16 +30,9 @@ function listCareersPage(params) {
 
 function listCareers(params) {
   return request({
-    url: 'wdcswy/career/query',
+    url: 'wdcswy/career/searchList',
     method: 'get',
     params: params
-  })
-}
-
-function twoCareer() {
-  return request({
-    url: 'wdcswy/birth/twoCareer',
-    method: 'get'
   })
 }
 

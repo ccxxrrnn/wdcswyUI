@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Card, Segmented, Row, Col, Spin, Empty, Input, Pagination, Descriptions } from 'antd';
 import './EquipmentList.css';
-import { attributeGroups } from '@/constants/attributes';
 import DynamicIcon from '@/components/DynamicIcon';
 import knowledgeApi from '@/api/knowledge';
+import systemApi from '@/api/system';
+
 
 // 默认图标兜底
 const defaultIcon = '/default-attribute.png';
@@ -21,17 +22,12 @@ const EquipmentList = () => {
   });
   const [failedImages, setFailedImages] = useState({}); // 新增状态用于记录加载失败的图片
 
-  // 添加对分页参数的验证和规范化处理
-  const normalizePageParams = useCallback((current = pagination.current, pageSize = pagination.pageSize) => {
-    return {
-      current: Math.max(1, Number(current) || 1),
-      pageSize: Math.max(10, Number(pageSize) || 10)
-    };
-  }, []);
+  const [attributeGroups, setAttributeGroups] = useState([]);
 
   const fetchData = useCallback(async (current = 1, pageSize = 10) => {
-    // 规范化分页参数，防止非法值
-    const { current: safeCurrent, pageSize: safePageSize } = normalizePageParams(current, pageSize);
+    // 将分页参数规范化逻辑内联，并移除对 pagination 状态的依赖
+    const safeCurrent = Math.max(1, Number(current) || 1);
+    const safePageSize = Math.max(10, Number(pageSize) || 10);
     
     setLoading(true);
     try {
@@ -41,11 +37,6 @@ const EquipmentList = () => {
         type: selectedType === '全部' ? '' : selectedType,
         name: searchTerm,
       });
-
-        
-      // 添加更详细的调试信息
-      console.log('API Response:', response); // 添加原始响应日志
-      
       
      // 添加完整的容错逻辑
       if (!response || !response.data) {
@@ -55,9 +46,7 @@ const EquipmentList = () => {
         return;
       }
       
-      
       const result = response.data;
-
 
       const normalizedData = (result.data || []).map(item => ({
         ...item,
@@ -67,7 +56,13 @@ const EquipmentList = () => {
       // ✅ 强制替换整个列表，而不是追加
       setEquipmentList(normalizedData);
       setTotal(result.total || 0);
-      setPagination({ current: safeCurrent, pageSize: safePageSize });
+      // 使用函数式更新，避免对 pagination 的直接依赖
+      setPagination(prev => {
+        if (safeCurrent !== prev.current || safePageSize !== prev.pageSize) {
+          return { current: safeCurrent, pageSize: safePageSize };
+        }
+        return prev;
+      });
     } catch (error) {
       console.error('Failed to fetch equipment data:', error);
       setEquipmentList([]);
@@ -75,7 +70,7 @@ const EquipmentList = () => {
     } finally {
       setLoading(false);
     }
-  }, [normalizePageParams, selectedType, searchTerm]);
+  }, [selectedType, searchTerm]);
 
   // 初始加载或当筛选条件变化时加载数据
   useEffect(() => {
@@ -98,6 +93,20 @@ const EquipmentList = () => {
         setTypeList(['全部']);
       }
     })();
+        (async () => {
+      try {
+        const response = (await systemApi.constants.queryAttributeGroups()).data;
+        if (response && response.data) {
+          const datas = response.data;
+          setAttributeGroups(datas);
+        } else {
+          setAttributeGroups([]);
+        }
+      } catch (error) {
+        console.error('获取属性组失败:', error);
+          setAttributeGroups([]);
+      }
+    })();
   }, []); // 空依赖数组表示只在组件挂载时执行一次
 
   // 筛选逻辑：如果 selectedType 为 '全部'，展示所有；否则按 type 筛选
@@ -118,7 +127,7 @@ const EquipmentList = () => {
   // 分页处理 - 使用更精确的依赖数组
    const paginatedList = useMemo(() => {
     return filteredList;
-  }, [filteredList, pagination.current, pagination.pageSize]);
+  }, [filteredList]);
 
 
   const handlePageChange = useCallback((current, pageSize) => {
@@ -167,17 +176,7 @@ const EquipmentList = () => {
                         <>
                           <img
                             alt={item.name}
-                            src={item.image && !failedImages[item.id]
-                              ? (() => {
-                                  try {
-                                    const cleanedPath = item.image.replace(/^\.\.\//, '');
-                                    return require(`@/assets/images/equipment/${cleanedPath}`);
-                                  } catch (e) {
-                                    console.warn(`Image not found: ${item.image}`);
-                                    return defaultIcon;
-                                  }
-                                })()
-                              : defaultIcon}
+                            src={failedImages[item.id] ? defaultIcon : (item.rawUrl || defaultIcon)}
                             className="equipment-image-max"
                             onError={() => {
                               setFailedImages(prev => ({ ...prev, [item.id]: true }));
@@ -200,7 +199,7 @@ const EquipmentList = () => {
                               return (
                                 <React.Fragment key={idx}>
                                   <span style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', marginRight: 8 }}>
-                                    <DynamicIcon iconKey={attr.key} /> {attr.label}: {value}
+                                    <DynamicIcon iconKey={attr.key} /> {attr.value}: {value}
                                   </span>
                                 </React.Fragment>
                               );

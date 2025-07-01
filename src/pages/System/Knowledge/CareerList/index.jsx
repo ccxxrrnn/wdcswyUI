@@ -25,13 +25,11 @@ const CareerList = () => {
       title: '是否战职', 
       dataIndex: 'isWarDuty', 
       key: 'isWarDuty',
-      render: (text) => text  ? '是' : '否'
     },
     { 
       title: '是否二代职业', 
       dataIndex: 'isTwoCareer', 
       key: 'isTwoCareer',
-      render: (text) => text ? '是' : '否'
     }
   ], [])
 
