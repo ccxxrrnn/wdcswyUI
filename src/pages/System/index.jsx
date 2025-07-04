@@ -1,52 +1,40 @@
-import React, { useEffect, useState } from 'react'
-import { Card, Col, Row, Statistic } from 'antd'
-import systemApi from '@/api/system'
- import Chart from '@/components/Chart'
+import React, { useEffect, useState } from 'react';
+import { Card } from 'antd';
+import systemApi from '@/api/system';
+import Chart from '@/components/Chart';
+import StackedColumnChart from '@/components/Chart/StackedColumnChart';
 
 const System = () => {
-  // 表单数据
-  const [systemData, setSystemData] = useState(null)
-  const [cards, setCards] = useState([])
-
-  
+  const [systemData, setSystemData] = useState(null);
 
   useEffect(() => {
-    if (!systemData) {
-      const fetchData = async () => {
-        const { data: { data } } = await systemApi.data.query()
-        setSystemData(data)
-        setCards(data?.cards || [])
-      }
-      fetchData()
-    } else {
-      // 如果数据已存在，直接设置 cards
-      setCards(systemData.cards || [])
-    }
-  }, [systemData])
+    const fetchData = async () => {
+      const {
+        data: { data },
+      } = await systemApi.data.query();
+      setSystemData(data);
+    };
+    fetchData();
+  }, []);
 
-  // 渲染前判断数据是否存在
-  if (!systemData || !systemData.cityCareerTypeNums || !cards.length) {
-    return <div>加载中...</div>
+  if (!systemData) {
+    return <div>加载中...</div>;
   }
 
   return (
-    <>
-      <div style={{ display: 'flex' }}>
-        <Card title="角色分布联动图"  variant="borderless" style={{ width: '100%' }}>
-          <Chart id='container' data={systemData.cityCareerTypeNums} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {systemData.cityCareerTypeNums && (
+        <Card title="角色分布联动图" variant="borderless" style={{ width: '100%' }}>
+          <Chart data={systemData.cityCareerTypeNums} />
         </Card>
-      </div>
-      <Row gutter={16}>
-        {cards.map(item => (
-          <Col span={6} key={item.title}>
-            <Card title={item.title} variant="borderless">
-              <Statistic valueStyle={{ color: '#3f8600' }} value={item.content} />
-            </Card>
-          </Col>
-        ))}
-      </Row>
-    </>
-  )
-}
+      )}
+      {systemData.cityCareerNums && (
+        <Card title="各城市职业数量分布" variant="borderless" style={{ width: '100%' }}>
+          <StackedColumnChart id="stacked-column-chart" data={systemData.cityCareerNums} />
+        </Card>
+      )}
+    </div>
+  );
+};
 
-export default System
+export default System;

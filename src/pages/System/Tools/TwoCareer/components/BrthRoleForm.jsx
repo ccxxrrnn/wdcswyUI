@@ -39,7 +39,7 @@ export default function BrthRoleForm({ data, birthToggleModalStatus, careerList 
     } catch (e) {
       message.error('操作失败')
     }
-  }, [data, submitCount, form])
+  }, [data, submitCount , onCancel])
 
   useEffect(() => {
     form.resetFields()

@@ -13,7 +13,10 @@ const apiMap = {
 	  store: { 
       query: listCareerStore,
       add: addCareerStore
-	  }
+	  },
+    match: {
+      save: saveCareerMatch,
+    }
   },
   birth: {
 
@@ -66,5 +69,13 @@ function addCareerStore(params) {
     url: '/wdcswy/careerStore/save',
     method: 'get',
 	  params: params
+  })
+}
+
+function saveCareerMatch(data) {
+  return request({
+    url: '/wdcswy/birth/save',
+    method: 'post',
+    data: data
   })
 }

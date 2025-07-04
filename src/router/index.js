@@ -8,6 +8,7 @@ const NotFound = lazy(() => import('@/pages/NotFound'))
 const System = lazy(() => import('@/pages/System'))
 const TwoCareer = lazy(() => import('@/pages/System/Tools/TwoCareer'))
 const CareerStore = lazy(() => import('@/pages/System/Manage/Career/Store'))
+const CareerMatch = lazy(() => import('@/pages/System/Manage/Career/Match'))
 const SkillList = lazy(() => import('@/pages/System/Knowledge/SkillList'))
 const EquipmentList = lazy(() => import('@/pages/System/Knowledge/EquipmentList'))
 const CareerList = lazy(() => import('@/pages/System/Knowledge/CareerList'))
@@ -20,6 +21,7 @@ const constantRoutes = [
       { index: true, element: <Navigate to={'/system'} replace /> },
       { path: '/system/role', element: <Role /> },
       { path: '/system/career/store', element: <CareerStore /> },
+      { path: '/system/career/match', element: <CareerMatch /> },
       { path: '/system/birth', element: <Birth /> },
       { path: '/system', element: <System /> },
       { path: '/tools', element: <System /> },

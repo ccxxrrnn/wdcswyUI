@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import knowledgeApi from '@/api/knowledge'
 // 自定义Hook，用于获取字典数据
-const CareerDict = () => {
+const useCareerDict = () => {
   const [allCareerArr, setAllCareerArr] = useState([])
 
   useEffect(() => {
@@ -15,4 +15,4 @@ const CareerDict = () => {
   }, [])
   return allCareerArr
 }
-export default CareerDict
+export default useCareerDict
