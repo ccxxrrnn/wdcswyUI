@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Table } from 'antd'
 // 导入自定义hook
 import useFetchTableData from '@/hooks/useFetchTableData'
@@ -11,12 +11,23 @@ const CustomTable = ({ fetchMethod, columns, requestParam, onParamChange, ...res
 		onParamChange({ pageSize: page.pageSize, current: page.current })
 	}
 
+	const processedData = useMemo(() => {
+		if (!tableData.data || !Array.isArray(tableData.data)) {
+			return []
+		}
+		return tableData.data.map((item, index) => ({
+			...item,
+			uniqueKeyForTable: `${JSON.stringify(item)}-${index}`
+		}))
+	}, [tableData.data])
+
 	return (
 		<Table
 			{...resetTableProps}
+			rowKey="uniqueKeyForTable"
 			onChange={onTableChange}
 			loading={loading}
-			dataSource={tableData.data}
+			dataSource={processedData}
 			columns={columns}
 			pagination={{
 			total: tableData.total,

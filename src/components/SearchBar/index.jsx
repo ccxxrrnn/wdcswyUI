@@ -20,7 +20,7 @@ const SearchBar = ({ formItemList, getSearchParams }) => {
       createElement(
         Select,
         { onChange: (v) => callback(v), allowClear: true, ...restProps },
-        selectvalues.map((v) => createElement(Select.Option, { key: v.key}, v.value))
+        selectvalues.map((v) => createElement(Select.Option, { key: v.value, value: v.value }, v.label))
       ),
     input: ({ type, ...restProps }) => <Input allowClear {...restProps} />,
     datePicker: ({ type, ...restProps }) => <DatePicker allowClear format="YYYY-MM-DD" {...restProps} />
@@ -42,10 +42,10 @@ const SearchBar = ({ formItemList, getSearchParams }) => {
               // 依据类型返回对应的组件
               const C = formComponents[type]
               // 输出不用的type属性以便传入输入类组件
-              delete item.valueCompProps.type
+              const { type: compType, ...restValueCompProps } = item.valueCompProps;
               return (
                 <Col span={6} key={item.formItemProps.name}>
-                  <Form.Item {...item.formItemProps}>{C(item.valueCompProps)}</Form.Item>
+                  <Form.Item {...item.formItemProps}>{C(restValueCompProps)}</Form.Item>
                 </Col>
               )
             })}

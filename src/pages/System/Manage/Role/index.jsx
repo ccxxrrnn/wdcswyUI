@@ -1,61 +1,69 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useMemo, useCallback } from 'react'
 import { Space, Button, Popconfirm, Card, message } from 'antd'
 import manageApi from '@/api/manage'
-import systemApi from '@/api/system'
 import CustomTable from '@/components/CustomTable'
 import RoleEditForm from './components/RoleEditForm'
 import CustomModal from '@/components/CustomModal'
 import SearchBar from '@/components/SearchBar'
 import careerDict from '@/hooks/CareerDict'
+import useSystemDict from '@/hooks/useSystemDict'
 
 const Role = () => {
   // 状态字典
   const careerDicts = careerDict()
 
-  const columns = [
+  /** 表单参数 */
+  const userModalRef = useRef()
+  const [editType, setEditType] = useState()
+  const [roleId, setRoleId] = useState()
+  const toggleModalStatus = useCallback((status) => {
+    userModalRef.current.toggleShowStatus(status);
+    // 关闭弹窗时重置ID，确保下次打开时能重新加载
+    if (!status) {
+      setRoleId(undefined);
+    }
+  }, [])
+
+  const createRoleNameColumn = useCallback((title, dataIndex) => ({
+    title,
+    dataIndex,
+    key: dataIndex,
+    render: (text, record) => (
+      <button
+        type="button"
+        style={{
+          border: 'none',
+          background: 'none',
+          color: '#1890ff',
+          cursor: 'pointer',
+          padding: 0
+        }}
+        onClick={() => {
+          setEditType('edit')
+          setRoleId(record.roleId)
+          toggleModalStatus(true)
+        }}
+      >
+        {text}
+      </button>
+    ),
+  }), [toggleModalStatus]);
+
+  const columns = useMemo(() => [
     { key: 'roleId', hidden: true },
-    {
-      title: '角色名称',
-      dataIndex: 'roleName',
-      key: 'roleName',
-      render: (text, record) => (
-        <button
-          type="button"
-          style={{
-            border: 'none',
-            background: 'none',
-            color: '#1890ff',
-            cursor: 'pointer',
-            padding: 0
-          }}
-          onClick={() => {
-            setEditType('edit')
-            setRoleId(record.roleId)
-            toggleModalStatus(true)
-          }}
-        >
-          {text}
-        </button>
-      ),
-    },
-    {title: '性别',dataIndex: 'sex',key: 'sex'},
-    {title: '职业',dataIndex: 'careerName',key: 'careerName',},
+    createRoleNameColumn('角色名称', 'roleName'),
+    { title: '性别', dataIndex: 'sex', key: 'sex' },
+    { title: '职业', dataIndex: 'careerName', key: 'careerName', },
     { title: '城市', dataIndex: 'city', key: 'city' },
     { title: '是否二代', dataIndex: 'isTwo', key: 'isTwo' },
     { title: '是否结婚', dataIndex: 'isBrith', key: 'isBrith' },
     { title: '星级', dataIndex: 'star', key: 'star' }
-  ]
+  ], [createRoleNameColumn]);
 
-  /** 搜索栏参数 */
-  const [cityOptions, setCityOptions] = useState([])
+  const cityOptions = useSystemDict('city')
+  const starOptions = useSystemDict('star')
 
-    useEffect(() => {
-      systemApi.constants.listByType('city').then(res => {
-        setCityOptions(res.data.data)
-      })
-    }, [])
-
-  const formItemList = [
+  const formItemList = useMemo(() => [
     { formItemProps: { name: 'roleName', label: '角色名' }, valueCompProps: {} },
     {
       formItemProps: { name: 'careerId', label: '职业' },
@@ -73,10 +81,11 @@ const Role = () => {
         type: 'select',
         selectvalues: cityOptions,
         showSearch: true,
-        value: 'key'
+        filterOption: (input, option) =>
+          (option.children || '').toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
     }
-  ]
+  ], [careerDicts, cityOptions]);
 
   /** 表格参数 */
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
@@ -104,13 +113,6 @@ const Role = () => {
     }
   }
 
-  /** 表单参数 */
-  const userModalRef = useRef()
-  const [editType, setEditType] = useState()
-  const [roleId, setRoleId] = useState()
-  const toggleModalStatus = (status) => {
-    userModalRef.current.toggleShowStatus(status)
-  }
 
   // 新增
   const addRow = () => {
@@ -159,10 +161,17 @@ const Role = () => {
       />
       <CustomModal title='角色' ref={userModalRef}>
         <RoleEditForm
-          editType={editType}
+          key={roleId || 'add'}
+          mode={editType}
           roleId={roleId}
-          onRefreshTable={onParamChange}
-          toggleModalStatus={toggleModalStatus}
+          cityOptions={cityOptions}
+          starOptions={starOptions}
+          careerOptions={careerDicts}
+          onSuccess={() => {
+            toggleModalStatus(false);
+            onParamChange({}); // 刷新表格
+          }}
+          onCancel={() => toggleModalStatus(false)}
         />
       </CustomModal>
     </>

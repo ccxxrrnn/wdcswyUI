@@ -7,7 +7,7 @@ const CareerDict = () => {
   useEffect(() => {
 	  const fetchAllRole = async () => {
 	  	const {data : {data}} = await knowledgeApi.career.query()
-	  	const filterArr = data.map((item) => ({ key: item.careerId, value: item.careerName }))
+	  	const filterArr = data.map((item) => ({ label: item.careerName, value: item.careerId }))
 	  	setAllCareerArr(filterArr)
 	  }
 

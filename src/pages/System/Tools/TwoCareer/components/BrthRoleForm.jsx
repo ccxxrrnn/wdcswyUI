@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Form, Input, Button, message, Select, Radio } from 'antd'
 import toolsApi from '@/api/tools'
-import systemApi from '@/api/system'
-
+import useSystemDict from '@/hooks/useSystemDict'
 
 const { Option } = Select
 
@@ -10,51 +9,60 @@ export default function BrthRoleForm({ data, birthToggleModalStatus, careerList 
   const [form] = Form.useForm()
   const [submitCount, setSubmitCount] = useState(0)
 
+  // 使用自定义Hook获取字典数据
+  const cityOptions = useSystemDict('city')
+  const starOptions = useSystemDict('star')
+
+  // 表单事件回调
   const onCancel = useCallback(() => {
     birthToggleModalStatus(false)
   }, [birthToggleModalStatus])
 
-  const onFinish = async (value) => {
+  const onFinish = useCallback(async (value) => {
     if (submitCount >= 2) {
       onCancel()
       message.warning('已达到提交上限，无法再次提交')
+      setSubmitCount(0) // 重置提交计数
       return
     }
     try {
-      value = {
+      const params = {
         ...value,
-        careerId: data.birthCareerId,
         roleAId: data.birthAId,
         roleBId: data.birthBId,
-        isTwo: '1',
-        isBrith: '1'
+        isTwo: true,
+        isBrith: true
       }
-      await toolsApi.twoBirth.add(value)
+      await toolsApi.twoBirth.add(params)
       message.success('添加生育成功')
-      form.resetFields()
       setSubmitCount(count => count + 1)
     } catch (e) {
       message.error('操作失败')
     }
-  }
+  }, [data, submitCount, form])
 
-  // 抽象城市和星级选项
-    const [cityOptions, setCityOptions] = useState([])
+  useEffect(() => {
+    form.resetFields()
+    setSubmitCount(0)
+    if (data && starOptions.length > 0) {
+      const indexA = starOptions.findIndex(opt => opt.label === data.birthAStar);
+      const indexB = starOptions.findIndex(opt => opt.label === data.birthBStar);
 
-    useEffect(() => {
-      systemApi.constants.listByType('city').then(res => {
-        setCityOptions(res.data.data)
-      })
-    }, [])
+      const minIndex = Math.max(indexA, indexB);
+      let defaultIndex = minIndex - 1;
 
-  const [starOptions, setStarOptions] = useState([])
+      if (indexA === 0 && indexB === 0) {
+        defaultIndex = 0;
+      }
 
-    useEffect(() => {
-      systemApi.constants.listByType('star').then(res => {
-        setStarOptions(res.data.data)
-      })
-    }, [])
+      if (defaultIndex >= starOptions.length) {
+        defaultIndex = starOptions.length - 1;
+      }
 
+      const defaultValue = starOptions[defaultIndex].value;
+      form.setFieldsValue({ star: defaultValue });
+    }
+  }, [data, starOptions, form]);
 
   return (
     <Form
@@ -87,20 +95,32 @@ export default function BrthRoleForm({ data, birthToggleModalStatus, careerList 
           }
         >
           {careerList.map((item) => (
-            <Option key={item.key} value={item.value}>
-              {item.value}
+            <Option key={item.value} value={item.value}>
+              {item.label}
             </Option>
           ))}
         </Select>
       </Form.Item>
       <Form.Item name="city" label="城市" hasFeedback rules={[{ required: true, message: '请选择一个城市!' }]}>
-        <Select placeholder="请选择一个城市">
-          {cityOptions.map(city => (<Option key={city.key} value={city.value}>{city.value}</Option>))}
+        <Select
+          placeholder="请选择一个城市"
+          showSearch
+          filterOption={(input, option) =>
+            (option?.children ?? '').toLowerCase().indexOf(input.toLowerCase()) >= 0
+          }
+        >
+          {cityOptions.map(item => (<Option key={item.value} value={item.value}>{item.label}</Option>))}
         </Select>
       </Form.Item>
       <Form.Item name="star" label="星级" hasFeedback rules={[{ required: true, message: '请选择一个星级!' }]}>
-        <Select placeholder="请选择一个星级">
-          {starOptions.map(opt => (<Option key={opt.key} value={opt.value}>{opt.value}</Option>))}
+        <Select
+          placeholder="请选择一个星级"
+          showSearch
+          filterOption={(input, option) =>
+            (option?.children ?? '').toLowerCase().indexOf(input.toLowerCase()) >= 0
+          }
+        >
+          {starOptions.map(item => (<Option key={item.value} value={item.value}>{item.label}</Option>))}
         </Select>
       </Form.Item>
       <Form.Item wrapperCol={{ span: 16, offset: 8 }}>

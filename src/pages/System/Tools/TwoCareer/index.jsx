@@ -6,34 +6,25 @@ import CustomModal from '@/components/CustomModal'
 import CustomTable from '@/components/CustomTable'
 import BirthRoleForm from './components/BrthRoleForm'
 import SearchBar from '@/components/SearchBar'
-import careerDict from '@/hooks/CareerDict'
+import careerDict from '@/hooks/CareerDict';
+import useSystemDict from '@/hooks/useSystemDict'
 
 const TwoCareer = () => {
   // 生育职业字典
-  const careerDicts = careerDict()
+  const careerDicts = careerDict();
 
-  // 搜索栏表单项
-  const formItemList = [
-    {
-      formItemProps: { name: 'birthCareerId', label: '生育职业：' },
-      valueCompProps: {
-        type: 'select',
-        selectvalues: careerDicts,
-        showSearch: true,
-        filterOption: (input, option) =>
-          (option.children || '').toLowerCase().indexOf(input.toLowerCase()) >= 0
-      }
-    }
-  ]
+  // 城市和星级选项
+  const cityOptions = useSystemDict('city')
+  const starOptions = useSystemDict('star')
 
   // 表格请求参数
   const [requestParam, setRequestParam] = useState({
     pageSize: 10,
     current: 1
-  })
+  });
 
   // 搜索栏回调，只更新参数，不请求数据
-  const onParamChange = (searchParams) => {
+  const onParamChange = useCallback((searchParams) => {
     if (!Object.keys(searchParams).length) {
       setRequestParam({
         pageSize: 10,
@@ -46,12 +37,27 @@ const TwoCareer = () => {
         ...searchParams
       }))
     }
-  }
+  }, []); // onParamChange 依赖项为空，因为它只使用了 setRequestParam
+
+  // 搜索栏表单项
+  const formItemList = useMemo(() => [
+    {
+      formItemProps: { name: 'birthCareerId', label: '生育职业：' },
+      valueCompProps: {
+        type: 'select',
+        selectvalues: careerDicts,
+        showSearch: true,
+        filterOption: (input, option) =>
+          (option.children || '').toLowerCase().indexOf(input.toLowerCase()) >= 0
+      }
+    }
+  ], [careerDicts])
 
   // 弹窗、表单等逻辑
-  const [roleId, setRoleId] = useState()
-  const [data, setData] = useState()
-  const [currentRecord, setCurrentRecord] = useState()
+  const [roleId, setRoleId] = useState();
+  const [formMode, setFormMode] = useState('add');
+  const [initialData, setInitialData] = useState(null);
+  const [birthRecord, setBirthRecord] = useState();
   const userModalRef = useRef()
   const birthModalRef = useRef()
   const toggleModalStatus = useCallback((status) => {
@@ -61,7 +67,7 @@ const TwoCareer = () => {
     birthModalRef.current?.toggleShowStatus(status)
   }, [])
   const addRow = useCallback((record) => {
-    setData(record)
+    setBirthRecord(record)
     birthToggleModalStatus(true)
   }, [birthToggleModalStatus])
 
@@ -87,9 +93,27 @@ const TwoCareer = () => {
             padding: 0
           }}
           onClick={() => {
-            setRoleId(id)
-            setCurrentRecord({ ...record, roleType })
-            toggleModalStatus(true)
+            if (isEmpty) {
+              setFormMode('add');
+              setRoleId(null);
+              // 根据职业名称反查职业ID
+              const careerName = roleType === 'A' ? record.birthACareerName : record.birthBCareerName;
+              const career = careerDicts.find(c => c.label === careerName);
+              const careerId = career ? career.value : undefined;
+              // 根据 roleType 预设表单值
+              const prefillData = {
+                roleName: roleType === 'A' ? record.birthARoleName : record.birthBRoleName,
+                careerId: careerId,
+                star: roleType === 'A' ? starOptions.find(opt => String(opt.label) === String(record.birthAStar))?.value : starOptions.find(opt => String(opt.label) === String(record.birthBStar))?.value,
+                sex: roleType === 'A' ? '0' : '1', // 假设 A 是女性, B 是男性
+              };
+              setInitialData(prefillData);
+            } else {
+              setFormMode('edit');
+              setRoleId(id);
+              setInitialData(null);
+            }
+            toggleModalStatus(true);
           }}
         >
           {displayText}
@@ -97,7 +121,7 @@ const TwoCareer = () => {
         </button>
       );
     }
-  }), [toggleModalStatus])
+  }), [toggleModalStatus, careerDicts, starOptions])
 
   const columns = useMemo(() => [
     { title: '职业A', dataIndex: 'birthACareerName', key: 'birthACareerName' },
@@ -123,10 +147,17 @@ const TwoCareer = () => {
       ref: userModalRef,
       content: (
         <RoleEditForm
-          toggleModalStatus={toggleModalStatus}
-          editType='edit'
+          mode={formMode}
           roleId={roleId}
-          data={currentRecord}
+          initialData={initialData}
+          cityOptions={cityOptions}
+          starOptions={starOptions}
+          careerOptions={careerDicts}
+          onSuccess={() => {
+            toggleModalStatus(false);
+            onParamChange(requestParam); // 触发表格数据刷新
+          }}
+          onCancel={() => toggleModalStatus(false)}
         />
       )
     },
@@ -135,9 +166,9 @@ const TwoCareer = () => {
       ref: birthModalRef,
       content: (
         <BirthRoleForm
-          data={data}
+          data={birthRecord}
           birthToggleModalStatus={birthToggleModalStatus}
-          careerList={data ? careerDicts.filter(item => item.value === data.birthACareerName || item.value === data.birthBCareerName || item.value === data.birthCareerName) : careerDicts}
+          careerList={birthRecord ? careerDicts.filter(item => item.label === birthRecord.birthACareerName || item.label === birthRecord.birthBCareerName || item.label === birthRecord.birthCareerName) : careerDicts}
         />
       )
     }
@@ -152,9 +183,6 @@ const TwoCareer = () => {
       <SearchBar formItemList={formItemList} getSearchParams={onParamChange} />
       <CustomTable
         columns={columns}
-        rowKey={(record) =>
-          `${record.birthACareerName}-${record.birthAId}-${record.birthBCareerName}-${record.birthBId}`
-        }
         bordered
         fetchMethod={toolsApi.twoBirth.query}
         requestParam={requestParam}
