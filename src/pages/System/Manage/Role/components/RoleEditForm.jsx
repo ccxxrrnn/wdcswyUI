@@ -36,7 +36,6 @@ export default function RoleEditForm({
     console.log('RoleEditForm: Form submitted with values:', values);
     const success = await saveRole(values);
     if (success) {
-      form.resetFields();
       if (onSuccess) {
         onSuccess();
       }

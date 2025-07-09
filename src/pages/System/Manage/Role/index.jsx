@@ -169,7 +169,7 @@ const Role = () => {
           careerOptions={careerDicts}
           onSuccess={() => {
             toggleModalStatus(false);
-            onParamChange({}); // 刷新表格
+            setRequestParam(prev => ({ ...prev }))
           }}
           onCancel={() => toggleModalStatus(false)}
         />

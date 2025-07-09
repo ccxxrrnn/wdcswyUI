@@ -72,10 +72,10 @@ function addCareerStore(params) {
   })
 }
 
-function saveCareerMatch(data) {
+function saveCareerMatch(params) {
   return request({
     url: '/wdcswy/birth/save',
     method: 'post',
-    data: data
+    params: params
   })
 }

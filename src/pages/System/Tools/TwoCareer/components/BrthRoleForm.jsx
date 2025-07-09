@@ -76,8 +76,8 @@ export default function BrthRoleForm({ data, birthToggleModalStatus, careerList 
       </Form.Item>
       <Form.Item name="sex" label="性别" rules={[{ required: true, message: '必填' }]}>
         <Radio.Group>
-          <Radio value="0">男</Radio>
-          <Radio value="1">女</Radio>
+          <Radio value="1">男</Radio>
+          <Radio value="0">女</Radio>
         </Radio.Group>
       </Form.Item>
       <Form.Item

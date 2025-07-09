@@ -67,59 +67,52 @@ const Match = () => {
     }
   }, [birthTableOptions, currentTable]);
 
-  const handleSave = useCallback(async (dataToSave) => {
+  const handleSave = useCallback(async (cellData, aCareerName, bCareerName) => {
     setLoading(true);
     try {
-      const payload = [];
-      dataToSave.forEach(row => {
-        const bCareer = row.rowHeader;
-        Object.keys(row).forEach(colKey => {
-          if (colKey === 'key' || colKey === 'rowHeader') return;
-          
-          const aCareer = colKey;
-          const cell = row[colKey];
+      const aCareerId = careerDicts.find(c => c.label === aCareerName)?.value;
+      const bCareerId = careerDicts.find(c => c.label === bCareerName)?.value;
+      const suitabilityLabel = suitabilityOptions.find(s => s.label === cellData.suitability)?.value || cellData.suitability;
 
-          if (cell && (cell.suitability || cell.resultCareerValue)) {
-            const aCareerId = careerDicts.find(c => c.label === aCareer)?.value;
-            const bCareerId = careerDicts.find(c => c.label === bCareer)?.value;
+      const payload = {
+        birthId: parseInt(cellData.birthId) || null,
+        birthTable: parseInt(currentTable) || null,
+        careerIdA: aCareerId,
+        careerIdB: bCareerId,
+        suitability: suitabilityLabel || null,
+        birthCareerId: cellData.resultCareerValue || null,
+      };
 
-            payload.push({
-              birthId: parseInt(cell.birthId) || null,
-              birthTable: parseInt(currentTable) || null,
-              careerIdA: aCareerId,
-              careerIdB: bCareerId,
-              suitability: parseInt(cell.suitability) || null,
-              birthCareerId: cell.resultCareerValue || null, // This is already the ID
-            });
-          }
-        });
-      });
       await manageApi.career.match.save(payload);
       message.success('保存成功');
     } catch (error) {
-      message.error('保存失败');
+      message.error('保存失败，A：' +  careerDicts.find(c => c.label === aCareerName)?.value + '，B：' + careerDicts.find(c => c.label === bCareerName)?.value);
       console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [currentTable, careerDicts]);
+  }, [currentTable, careerDicts, suitabilityOptions]);
 
   const handleCellEditAndSave = useCallback((rowKey, colKey, newData) => {
+    let updatedCellData;
     setTableData(currentData => {
       const newTableData = currentData.map(row => {
         if (row.key === rowKey) {
+          updatedCellData = {
+            ...row[colKey],
+            suitability: newData.suitability,
+            resultCareerValue: newData.resultCareerValue,
+          };
           return {
             ...row,
-            [colKey]: {
-              ...row[colKey],
-              suitability: newData.suitability,
-              resultCareerValue: newData.resultCareerValue,
-            },
+            [colKey]: updatedCellData,
           };
         }
         return row;
       });
-      handleSave(newTableData);
+      if (updatedCellData) {
+        handleSave(updatedCellData, colKey, rowKey);
+      }
       return newTableData;
     });
     setVisiblePopoverKey(null);
@@ -136,11 +129,27 @@ const Match = () => {
       title: aCareer,
       dataIndex: aCareer,
       key: aCareer,
+      onCell: (record) => {
+        const cellData = record[aCareer];
+        const suitabilityLabel = suitabilityOptions.find(s => s.value === cellData?.suitability)?.label || cellData?.suitability;
+        const suitabilityColorMap = {
+          'A': '#d9f7be', // light green
+          'B': '#bae0ff', // light blue
+          'C': '#ffe7ba', // light orange
+          'D': '#ffccc7', // light red
+          'E': '#f5f5f5', // light grey
+        };
+        const backgroundColor = suitabilityColorMap[suitabilityLabel] || 'inherit';
+        return {
+          style: { backgroundColor },
+        };
+      },
       render: (cellData, record) => {
         const bCareer = record.rowHeader;
         const popoverKey = `${bCareer}-${aCareer}`;
         const resultCareerLabel = careerDicts.find(c => c.value === cellData?.resultCareerValue)?.label;
         const suitabilityLabel = suitabilityOptions.find(s => s.value === cellData?.suitability)?.label || cellData?.suitability;
+
         const displayText = `${suitabilityLabel || '-'}/${resultCareerLabel || '-'}`;
 
         return (
@@ -159,7 +168,7 @@ const Match = () => {
             open={visiblePopoverKey === popoverKey}
             onOpenChange={(open) => setVisiblePopoverKey(open ? popoverKey : null)}
           >
-            <div role="button" tabIndex={0} style={{ cursor: 'pointer' }}>{displayText}</div>
+            <div role="button" tabIndex={0} style={{ cursor: 'pointer', padding: '5px' }}>{displayText}</div>
           </Popover>
         );
       },
@@ -221,9 +230,6 @@ const Match = () => {
         onChange={setCurrentTable}
         style={{ marginBottom: 16 }}
       />
-      <Button onClick={() => handleSave(tableData)} type="primary" style={{ marginBottom: 16, marginLeft: 16 }} loading={loading} disabled={!currentTable}>
-        保存全表
-      </Button>
       <Table
         columns={columns}
         dataSource={tableData}
