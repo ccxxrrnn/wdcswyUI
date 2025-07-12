@@ -1,12 +1,13 @@
-import React, { useRef, useState, useMemo, useCallback } from 'react'
-import { Space, Button, Popconfirm, Card, message } from 'antd'
-import manageApi from '@/api/manage'
-import CustomTable from '@/components/CustomTable'
-import RoleEditForm from './components/RoleEditForm'
-import CustomModal from '@/components/CustomModal'
-import SearchBar from '@/components/SearchBar'
-import careerDict from '@/hooks/CareerDict'
-import useSystemDict from '@/hooks/useSystemDict'
+import React, { useRef, useState, useMemo, useCallback } from 'react';
+import { Space, Button, Popconfirm, Card, message } from 'antd';
+import manageApi from '@/api/manage';
+import CustomTable from '@/components/CustomTable';
+import RoleEditForm from './components/RoleEditForm';
+import CustomModal from '@/components/CustomModal';
+import SearchBar from '@/components/SearchBar';
+import careerDict from '@/hooks/CareerDict';
+import useSystemDict from '@/hooks/useSystemDict';
+import useFetchTableData from '@/hooks/useFetchTableData';
 
 const Role = () => {
   // 状态字典
@@ -87,31 +88,13 @@ const Role = () => {
     }
   ], [careerDicts, cityOptions]);
 
+  const { tableData, loading, handleSearch, handleTableChange } = useFetchTableData(manageApi.role.query);
+
   /** 表格参数 */
-  const [selectedRowKeys, setSelectedRowKeys] = useState([])
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const rowSelection = {
-    onChange: (selectedRowKeys) => setSelectedRowKeys(selectedRowKeys)
-  }
-
-  const defaultParam = {
-    pageSize: 10,
-    current: 1
-  }
-
-  const [requestParam, setRequestParam] = useState(defaultParam)
-
-  /** 表格事件 */
-  const onParamChange = (searchParams) => {
-    if (!Object.keys(searchParams).length) {
-      // 重置为初始参数
-      setRequestParam(defaultParam)
-    } else {
-      setRequestParam(prev => ({
-        ...prev,
-        ...searchParams
-      }))
-    }
-  }
+    onChange: (selectedRowKeys) => setSelectedRowKeys(selectedRowKeys),
+  };
 
 
   // 新增
@@ -124,19 +107,20 @@ const Role = () => {
   // 删除
   const deleteRow = async (roleIds) => {
     try {
-      await manageApi.role.del(roleIds)
-      message.success('删除成功')
-      setSelectedRowKeys([])
+      console.log('删除角色ID:', roleIds);
+      await manageApi.role.del(roleIds);
+      message.success('删除成功');
+      setSelectedRowKeys([]);
       // 触发表格刷新
-      onParamChange({})
+      handleSearch({});
     } catch (e) {
-      message.error(e)
+      message.error(e);
     }
-  }
+  };
 
   return (
     <>
-      <SearchBar formItemList={formItemList} getSearchParams={onParamChange} />
+      <SearchBar formItemList={formItemList} getSearchParams={handleSearch} />
       <Card>
         <Space>
           <Button onClick={addRow}>新增</Button>
@@ -150,16 +134,21 @@ const Role = () => {
       <CustomTable
         rowSelection={{
           type: 'checkbox',
-          ...rowSelection
+          ...rowSelection,
         }}
         columns={columns}
         rowKey="roleId"
         bordered
-        fetchMethod={manageApi.role.query}
-        requestParam={requestParam}
-        onParamChange={onParamChange}
+        loading={loading}
+        dataSource={tableData.records}
+        pagination={{
+          current: tableData.current,
+          pageSize: tableData.pageSize,
+          total: tableData.total,
+        }}
+        onChange={handleTableChange}
       />
-      <CustomModal title='角色' ref={userModalRef}>
+      <CustomModal title="角色" ref={userModalRef}>
         <RoleEditForm
           key={roleId || 'add'}
           mode={editType}
@@ -169,7 +158,7 @@ const Role = () => {
           careerOptions={careerDicts}
           onSuccess={() => {
             toggleModalStatus(false);
-            setRequestParam(prev => ({ ...prev }))
+            handleSearch({});
           }}
           onCancel={() => toggleModalStatus(false)}
         />

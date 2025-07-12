@@ -1,0 +1,48 @@
+.equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* 增加宽度 */
+    gap: 20px;
+}
+
+.equipment-slot {
+    width: 100px; /* 增加宽度 */
+    height: 80px;
+    border: 1px dashed #ccc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    padding: 5px;
+    box-sizing: border-box;
+    transition: all 0.2s ease-in-out;
+}
+
+.equipment-slot:hover {
+    border-color: #1890ff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.equipment-slot img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.equipment-name {
+    font-size: 12px;
+    color: #333;
+    margin-top: 5px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.empty-slot {
+    color: #999;
+    font-size: 12px;
+    text-align: center;
+}

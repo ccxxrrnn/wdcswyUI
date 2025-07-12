@@ -1,43 +1,25 @@
-import { useState, useMemo, useRef, useCallback } from 'react'
-import { Space, Divider, Button } from 'antd' // Card 已移除
-import toolsApi from '@/api/tools'
-import RoleEditForm from '@/pages/System/Manage/Role/components/RoleEditForm'
-import CustomModal from '@/components/CustomModal'
-import CustomTable from '@/components/CustomTable'
-import BirthRoleForm from './components/BrthRoleForm'
-import SearchBar from '@/components/SearchBar'
+import { useState, useMemo, useRef, useCallback } from 'react';
+import { Space, Divider, Button } from 'antd';
+import toolsApi from '@/api/tools';
+import RoleEditForm from '@/pages/System/Manage/Role/components/RoleEditForm';
+import CustomModal from '@/components/CustomModal';
+import CustomTable from '@/components/CustomTable';
+import BirthRoleForm from './components/BrthRoleForm';
+import SearchBar from '@/components/SearchBar';
 import careerDict from '@/hooks/CareerDict';
-import useSystemDict from '@/hooks/useSystemDict'
+import useSystemDict from '@/hooks/useSystemDict';
+import useFetchTableData from '@/hooks/useFetchTableData';
 
 const TwoCareer = () => {
   // 生育职业字典
   const careerDicts = careerDict();
 
   // 城市和星级选项
-  const cityOptions = useSystemDict('city')
-  const starOptions = useSystemDict('star')
+  const cityOptions = useSystemDict('city');
+  const starOptions = useSystemDict('star');
 
-  // 表格请求参数
-  const [requestParam, setRequestParam] = useState({
-    pageSize: 10,
-    current: 1
-  });
-
-  // 搜索栏回调，只更新参数，不请求数据
-  const onParamChange = useCallback((searchParams) => {
-    if (!Object.keys(searchParams).length) {
-      setRequestParam({
-        pageSize: 10,
-        current: 1,
-        birthCareerId: undefined
-      })
-    } else {
-      setRequestParam(prev => ({
-        ...prev,
-        ...searchParams
-      }))
-    }
-  }, []); // onParamChange 依赖项为空，因为它只使用了 setRequestParam
+  // 使用新的hook
+  const { tableData, loading, handleSearch, handleTableChange } = useFetchTableData(toolsApi.twoBirth.query);
 
   // 搜索栏表单项
   const formItemList = useMemo(() => [
@@ -155,7 +137,7 @@ const TwoCareer = () => {
           careerOptions={careerDicts}
           onSuccess={() => {
             toggleModalStatus(false);
-            onParamChange(requestParam); // 触发表格数据刷新
+            handleSearch({}); // 触发表格数据刷新
           }}
           onCancel={() => toggleModalStatus(false)}
         />
@@ -180,13 +162,18 @@ const TwoCareer = () => {
       <h3>只考虑了A适性，总和33达成999、王子是32，S+5、A+4</h3>
       <h3>二者职业等级应该为一致达成最优解，不一致将筛选</h3>
       <Divider />
-      <SearchBar formItemList={formItemList} getSearchParams={onParamChange} />
+      <SearchBar formItemList={formItemList} getSearchParams={handleSearch} />
       <CustomTable
         columns={columns}
         bordered
-        fetchMethod={toolsApi.twoBirth.query}
-        requestParam={requestParam}
-        onParamChange={onParamChange}
+        loading={loading}
+        dataSource={tableData.records}
+        pagination={{
+          current: tableData.current,
+          pageSize: tableData.pageSize,
+          total: tableData.total,
+        }}
+        onChange={handleTableChange}
       />
       {modals.map(({ title, ref, content }) => (
         <CustomModal title={title} ref={ref} key={title}>

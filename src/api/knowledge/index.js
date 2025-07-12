@@ -6,14 +6,13 @@ const apiMap = {
 	    query: listCareers
     },
     birth:{
-     queryPage: listBirthsPage
+      queryPage: listBirthsPage
     },
     skill:{
-
+        queryPage: listSkillsPage,
     },
     Equipment: {
         queryPage: listEquipmentsPage,
-        query: listEquipments,
         type: listEquipmentType
     },
 }
@@ -44,14 +43,6 @@ function listEquipmentsPage(params) {
   })
 }
 
-function listEquipments(params) {
-  return request({
-    url: 'wdcswy/equipment/query',
-    method: 'get',
-    params: params
-  })
-}
-
 function listEquipmentType() {
   return request({
     url: 'wdcswy/equipment/type',
@@ -62,6 +53,14 @@ function listEquipmentType() {
 function listBirthsPage(params) {
   return request({
     url: 'wdcswy/birth/list',
+    method: 'get',
+    params: params
+  })
+}
+
+function listSkillsPage(params) {
+  return request({
+    url: 'wdcswy/skill/list',
     method: 'get',
     params: params
   })

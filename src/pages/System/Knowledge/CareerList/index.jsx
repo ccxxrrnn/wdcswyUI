@@ -1,68 +1,43 @@
-import React, { useState, useMemo, useCallback } from 'react'
-import { Input, Button, Select, Form } from 'antd'
-import CustomTable from '@/components/CustomTable'
-import knowledgeApi from '@/api/knowledge'
+import React, { useMemo } from 'react';
+import { Input, Button, Select, Form } from 'antd';
+import CustomTable from '@/components/CustomTable';
+import knowledgeApi from '@/api/knowledge';
+import useFetchTableData from '@/hooks/useFetchTableData';
 
-
-const { Option } = Select
+const { Option } = Select;
 
 const CareerList = () => {
-  // 搜索参数
-  const [form] = Form.useForm()
-  const [requestParam, setRequestParam] = useState({
-    pageSize: 10,
-    current: 1,
-    careerName: '',
-    isWarDuty: undefined,
-    isTwoCareer: undefined
-  })
+  const [form] = Form.useForm();
+  const { tableData, loading, handleSearch, handleTableChange } = useFetchTableData(knowledgeApi.career.queryPage);
 
   // 表格列配置
-  const columns = useMemo(() => [
-    { key: 'careerId', hidden: true },
-    { title: '职业名称', dataIndex: 'careerName', key: 'careerName' },
-    { 
-      title: '是否战职', 
-      dataIndex: 'isWarDuty', 
-      key: 'isWarDuty',
-    },
-    { 
-      title: '是否二代职业', 
-      dataIndex: 'isTwoCareer', 
-      key: 'isTwoCareer',
-    }
-  ], [])
+  const columns = useMemo(
+    () => [
+      { title: '职业名称', dataIndex: 'careerName', key: 'careerName' },
+      {
+        title: '是否战职',
+        dataIndex: 'isWarDuty',
+        key: 'isWarDuty',
+      },
+      {
+        title: '是否二代职业',
+        dataIndex: 'isTwoCareer',
+        key: 'isTwoCareer',
+      },
+    ],
+    []
+  );
 
   // 查询
-  const onFinish = useCallback((values) => {
-    setRequestParam(prev => ({
-      ...prev,
-      current: 1,
-      ...values
-    }))
-  }, [])
+  const onFinish = (values) => {
+    handleSearch(values);
+  };
 
   // 重置
-  const onReset = useCallback(() => {
-    form.resetFields()
-    setRequestParam(prev => ({
-      ...prev,
-      current: 1,
-      careerName: '',
-      isWarDuty: undefined,
-      isTwoCareer: undefined
-    }))
-  }, [form])
-
-  // 表格事件
-  const onParamChange = useCallback((searchParams) => {
-    setRequestParam(prev => {
-      if (!Object.keys(searchParams).length) {
-        return { ...prev }
-      }
-      return { ...prev, ...searchParams }
-    })
-  }, [])
+  const onReset = () => {
+    form.resetFields();
+    handleSearch({});
+  };
 
   return (
     <>
@@ -98,12 +73,17 @@ const CareerList = () => {
         columns={columns}
         rowKey="careerId"
         bordered
-        fetchMethod={knowledgeApi.career.queryPage}
-        requestParam={requestParam}
-        onParamChange={onParamChange}
+        loading={loading}
+        dataSource={tableData.records}
+        pagination={{
+          current: tableData.current,
+          pageSize: tableData.pageSize,
+          total: tableData.total,
+        }}
+        onChange={handleTableChange}
       />
     </>
   )
 }
 
-export default CareerList 
+export default CareerList

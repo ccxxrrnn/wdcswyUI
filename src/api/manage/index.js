@@ -17,9 +17,6 @@ const apiMap = {
     match: {
       save: saveCareerMatch,
     }
-  },
-  birth: {
-
   }
 }
 export default apiMap
